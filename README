@@ -1,0 +1,1 @@
+Jenkins plugin space-left-plugin to prevent "no space left on device" errors when using build slaves with small disk space (e.g. when using RAM disks)

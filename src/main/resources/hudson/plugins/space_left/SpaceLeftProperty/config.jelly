@@ -1,0 +1,10 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:optionalBlock name="useRequiredSpace" title="${%Set required disk space for job}" checked="${instance.useRequiredSpace}">
+        <f:entry title="${%required space}" field="requiredSpace">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%factor}" field="factor">
+            <f:textbox />
+        </f:entry>
+    </f:optionalBlock>
+</j:jelly>

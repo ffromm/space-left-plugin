@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+
+<!--
+  The MIT License
+
+  Copyright (c) 2011, Frederik Fromm
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.442</version>
+    </parent>
+
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>space-left</artifactId>
+    <packaging>hpi</packaging>
+
+    <name>Jenkins space left plugin</name>
+    <version>1.0-SNAPSHOT</version>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/Space+Left+Plugin</url>
+
+    <developers>
+        <developer>
+            <id>ffromm</id>
+            <name>Frederik Fromm</name>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/ffromm/space-left-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:ffromm/space-left-plugin.git</developerConnection>
+        <url>http://github.com/ffromm/space-left-plugin</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>java.net-m2-repository</id>
+            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/
+            </url>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>1.4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>parameterized-trigger</artifactId>
+            <version>2.13</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-annotations</artifactId>
+            <version>1.7</version>
+        </dependency>
+    </dependencies>
+
+
+</project>
