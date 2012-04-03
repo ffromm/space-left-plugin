@@ -143,7 +143,11 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
         public Long invoke(File f, VirtualChannel channel) throws IOException {
             try {
                 long s = f.getUsableSpace();
-                if (s <= 0) return null;
+
+                if (s <= 0) {
+                    return null;
+                }
+
                 return s;
             } catch (LinkageError e) {
                 // pre-mustang

@@ -1,7 +1,6 @@
 package hudson.plugins.space_left;
 
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
