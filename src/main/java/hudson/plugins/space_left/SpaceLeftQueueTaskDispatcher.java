@@ -1,15 +1,10 @@
 package hudson.plugins.space_left;
 
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.model.*;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
-import hudson.remoting.VirtualChannel;
-import jenkins.model.Jenkins;
-import org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
