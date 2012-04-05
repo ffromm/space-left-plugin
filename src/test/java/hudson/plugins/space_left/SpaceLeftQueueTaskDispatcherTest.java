@@ -11,6 +11,7 @@ import org.jvnet.hudson.test.HudsonTestCase;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Created by IntelliJ IDEA.
@@ -68,7 +69,8 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         Long otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, -1L);
 
-        assertEquals(freeSpace/100000L - 10L, otherFreeSpace/100000L);
+        //assertEquals(freeSpace/100000L - 10L, otherFreeSpace/100000L);
+        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 1000000L)) < 100000L) );
 
         // take required space of other projects on slave into count
         FreeStyleProject otherProject = this.createFreeStyleProject();
@@ -76,10 +78,14 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
         SpaceLeftProperty otherSpaceLeftProperty = new SpaceLeftProperty();
         otherSpaceLeftProperty.setRequiredSpace(2000000L);
         otherProject.addProperty(otherSpaceLeftProperty);
+        FreeStyleBuild b = otherProject.scheduleBuild2(0).get();
+
+        assertTrue(b.getWorkspace().exists());
 
         otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, -1L);
 
-        assertEquals(freeSpace/100000L - 30L, otherFreeSpace / 100000L);
+        //assertEquals(freeSpace/100000L - 30L, otherFreeSpace / 100000L);
+        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 3000000L)) < 100000L) );
 
         StringParameterValue value = new StringParameterValue("REQUIRED_SPACE", "3000000");
         List<ParameterValue> params = new ArrayList<ParameterValue>();
@@ -92,8 +98,9 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, 3000000L);
 
-        assertEquals(freeSpace/100000L - 50L, otherFreeSpace / 100000L);
+        //assertEquals(freeSpace/100000L - 50L, otherFreeSpace / 100000L);
 
+        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 5000000L)) < 100000L) );
     }
 
 }

@@ -3,10 +3,10 @@ package hudson.plugins.space_left;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.*;
-import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
 import hudson.remoting.VirtualChannel;
+import jenkins.model.Jenkins;
 import org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement;
 
 import java.io.File;
@@ -93,9 +93,9 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
     /**
      * Returns the free disk space
      *
-     * @param slave slave to get the free space from
+     * @param slave          slave to get the free space from
      * @param currentProject current project that may have passed custom set space needed
-     * @param spaceNeeded custom set space needed by jop parameter REQUIRED_SPACE
+     * @param spaceNeeded    custom set space needed by jop parameter REQUIRED_SPACE
      * @return the free disk space
      * @throws IOException
      * @throws InterruptedException
@@ -108,6 +108,45 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
         }
 
         Long freeSpaceOnSlave = p.act(new GetUsableSpace());
+
+        if (spaceNeeded > 0) {
+            freeSpaceOnSlave -= spaceNeeded;
+        } else if (currentProject != null) {
+            SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) currentProject.getProperty(SpaceLeftProperty.class);
+
+            if (spaceLeftProperty != null) {
+                freeSpaceOnSlave -= spaceLeftProperty.getRequiredSpace();
+            }
+        }
+
+        FilePath workspace = p.child("workspace");
+
+        if (workspace.exists()) {
+            for (FilePath projectDir : workspace.listDirectories()) {
+                TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
+
+                if (topLevelItem instanceof AbstractProject) {
+                    AbstractProject project = (AbstractProject) topLevelItem;
+
+                    if (project.equals(currentProject) && spaceNeeded > 0L) {
+                        freeSpaceOnSlave -= spaceNeeded;
+                    } else {
+                        SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) project.getProperty(SpaceLeftProperty.class);
+
+                        if (spaceLeftProperty != null) {
+                            freeSpaceOnSlave -= spaceLeftProperty.getRequiredSpace();
+                        }
+                    }
+
+                    if (freeSpaceOnSlave <= 0) {
+                        freeSpaceOnSlave = 0L;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /*
 
         for (LabelAtom labelAtom : slave.getAssignedLabels()) {
             for (AbstractProject project : labelAtom.getTiedJobs()) {
@@ -132,6 +171,7 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
                 break;
             }
         }
+        */
 
         return freeSpaceOnSlave;
     }
