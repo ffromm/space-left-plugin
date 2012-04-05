@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
  */
 public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
     @Test
-    public void testGetFreeSpace() throws Exception {
+    public void testCanTake() throws Exception {
 
         // init slave
         LabelAtom label = new LabelAtom("label");
@@ -35,10 +35,6 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         // get free space from empty slave
         SpaceLeftQueueTaskDispatcher spaceLeftQueueTaskDispatcher = new SpaceLeftQueueTaskDispatcher();
-
-        Long freeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, null, -1L);
-
-        assertTrue(freeSpace > 0L);
 
         // add project to slave
         FreeStyleProject project = this.createFreeStyleProject();
@@ -67,11 +63,6 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         assertNull(causeOfBlockage);
 
-        Long otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, -1L);
-
-        //assertEquals(freeSpace/100000L - 10L, otherFreeSpace/100000L);
-        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 1000000L)) < 100000L) );
-
         // take required space of other projects on slave into count
         FreeStyleProject otherProject = this.createFreeStyleProject();
         otherProject.setAssignedLabel(label);
@@ -82,11 +73,6 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         assertTrue(b.getWorkspace().exists());
 
-        otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, -1L);
-
-        //assertEquals(freeSpace/100000L - 30L, otherFreeSpace / 100000L);
-        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 3000000L)) < 100000L) );
-
         StringParameterValue value = new StringParameterValue("REQUIRED_SPACE", "3000000");
         List<ParameterValue> params = new ArrayList<ParameterValue>();
         params.add(value);
@@ -95,12 +81,6 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
         causeOfBlockage = spaceLeftQueueTaskDispatcher.canTake(slave, item);
 
         assertNull(causeOfBlockage);
-
-        otherFreeSpace = spaceLeftQueueTaskDispatcher.getFreeSpace(slave, project, 3000000L);
-
-        //assertEquals(freeSpace/100000L - 50L, otherFreeSpace / 100000L);
-
-        assertTrue((Math.abs(otherFreeSpace - (freeSpace - 5000000L)) < 100000L) );
     }
 
 }

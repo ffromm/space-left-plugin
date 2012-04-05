@@ -72,7 +72,8 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
             LOG.log(Level.INFO, "checking disk usage on slave: " + slave.getNodeName());
 
             try {
-                freeDiskSpace = this.getFreeSpace(slave, currentProject, spaceNeeded);
+                SpaceLeft spaceLeft = new SpaceLeft();
+                freeDiskSpace = spaceLeft.getFreeSpace(slave, currentProject, spaceNeeded);
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, e.getMessage());
             } catch (InterruptedException e) {
@@ -90,112 +91,9 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
         return super.canTake(node, item);
     }
 
-    /**
-     * Returns the free disk space
-     *
-     * @param slave          slave to get the free space from
-     * @param currentProject current project that may have passed custom set space needed
-     * @param spaceNeeded    custom set space needed by jop parameter REQUIRED_SPACE
-     * @return the free disk space
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    protected Long getFreeSpace(Slave slave, AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject, long spaceNeeded) throws IOException, InterruptedException {
-        FilePath p = slave.getRootPath();
 
-        if (p == null) {
-            return null;
-        }
 
-        Long freeSpaceOnSlave = p.act(new GetUsableSpace());
 
-        if (spaceNeeded > 0) {
-            freeSpaceOnSlave -= spaceNeeded;
-        } else if (currentProject != null) {
-            SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) currentProject.getProperty(SpaceLeftProperty.class);
 
-            if (spaceLeftProperty != null) {
-                freeSpaceOnSlave -= spaceLeftProperty.getRequiredSpace();
-            }
-        }
 
-        FilePath workspace = p.child("workspace");
-
-        if (workspace.exists()) {
-            for (FilePath projectDir : workspace.listDirectories()) {
-                TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
-
-                if (topLevelItem instanceof AbstractProject) {
-                    AbstractProject project = (AbstractProject) topLevelItem;
-
-                    if (project.equals(currentProject) && spaceNeeded > 0L) {
-                        freeSpaceOnSlave -= spaceNeeded;
-                    } else {
-                        SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) project.getProperty(SpaceLeftProperty.class);
-
-                        if (spaceLeftProperty != null) {
-                            freeSpaceOnSlave -= spaceLeftProperty.getRequiredSpace();
-                        }
-                    }
-
-                    if (freeSpaceOnSlave <= 0) {
-                        freeSpaceOnSlave = 0L;
-                        break;
-                    }
-                }
-            }
-        }
-
-        /*
-
-        for (LabelAtom labelAtom : slave.getAssignedLabels()) {
-            for (AbstractProject project : labelAtom.getTiedJobs()) {
-                if (project.equals(currentProject) && spaceNeeded > 0L) {
-                    freeSpaceOnSlave -= spaceNeeded;
-                } else {
-                    SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) project.getProperty(SpaceLeftProperty.class);
-
-                    if (spaceLeftProperty != null) {
-                        freeSpaceOnSlave -= spaceLeftProperty.getRequiredSpace();
-                    }
-                }
-
-                if (freeSpaceOnSlave <= 0) {
-                    freeSpaceOnSlave = 0L;
-                    break;
-                }
-            }
-
-            if(freeSpaceOnSlave <= 0) {
-                freeSpaceOnSlave = 0L;
-                break;
-            }
-        }
-        */
-
-        return freeSpaceOnSlave;
-    }
-
-    /**
-     * inner class that is executed on slave to get free disk space
-     */
-    protected static final class GetUsableSpace implements FilePath.FileCallable<Long> {
-        @IgnoreJRERequirement
-        public Long invoke(File f, VirtualChannel channel) throws IOException {
-            try {
-                long s = f.getUsableSpace();
-
-                if (s <= 0) {
-                    return null;
-                }
-
-                return s;
-            } catch (LinkageError e) {
-                // pre-mustang
-                return null;
-            }
-        }
-
-        private static final long serialVersionUID = 1L;
-    }
 }
