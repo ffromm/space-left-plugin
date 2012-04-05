@@ -25,7 +25,7 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
     /**
      * the logger
      */
-    private static final Logger LOG = Logger.getLogger(hudson.plugins.space_left.SpaceLeftQueueTaskDispatcher.class.getName());
+    private static final Logger LOG = Logger.getLogger(SpaceLeftQueueTaskDispatcher.class.getName());
 
     private static final String REQUIRED_SPACE_PARAMETER = "REQUIRED_SPACE";
 
@@ -58,10 +58,10 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
             }
         }
 
-        AbstractProject currentProject = null;
+        AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject = null;
 
         if (spaceNeeded == -1 && item.task instanceof AbstractProject) {
-            currentProject = (AbstractProject) item.task;
+            currentProject = (AbstractProject<FreeStyleProject, FreeStyleBuild>) item.task;
         }
 
         Long freeDiskSpace = -1L;
@@ -93,13 +93,14 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
     /**
      * Returns the free disk space
      *
-     * @param slave
-     * @param currentProject
-     * @param spaceNeeded    @return the free disk space
+     * @param slave slave to get the free space from
+     * @param currentProject current project that may have passed custom set space needed
+     * @param spaceNeeded custom set space needed by jop parameter REQUIRED_SPACE
+     * @return the free disk space
      * @throws IOException
      * @throws InterruptedException
      */
-    protected Long getFreeSpace(Slave slave, AbstractProject currentProject, long spaceNeeded) throws IOException, InterruptedException {
+    protected Long getFreeSpace(Slave slave, AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject, long spaceNeeded) throws IOException, InterruptedException {
         FilePath p = slave.getRootPath();
 
         if (p == null) {
