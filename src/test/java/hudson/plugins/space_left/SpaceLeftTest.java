@@ -3,12 +3,13 @@ package hudson.plugins.space_left;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
-import hudson.slaves.DumbSlave;
-import hudson.slaves.SlaveComputer;
+import hudson.slaves.*;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
+import org.jvnet.hudson.test.PretendSlave;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -23,9 +24,13 @@ import java.util.List;
 public class SpaceLeftTest extends HudsonTestCase {
 
 
+
     @Test
     public void testGetFreeSpace() throws Exception {
+
         // init slave
+        PretendSlave pretendSlave = new PretendSlave("pretendSlave", null, 1, Node.Mode.NORMAL, "", null, null);
+
         LabelAtom label = new LabelAtom("label");
         DumbSlave slave = this.createSlave(label);
         SlaveComputer c = slave.getComputer();
@@ -36,7 +41,11 @@ public class SpaceLeftTest extends HudsonTestCase {
 
         SpaceLeft spaceLeft = new SpaceLeft();
 
-        Long freeSpace = spaceLeft.getFreeSpace(slave, null, -1L);
+        Long freeSpace = spaceLeft.getFreeSpace(pretendSlave, null, -1L);
+
+        assertEquals(Long.valueOf(0L), freeSpace);
+
+        freeSpace = spaceLeft.getFreeSpace(slave, null, -1L);
 
         assertTrue(freeSpace > 0L);
 
