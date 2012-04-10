@@ -5,6 +5,7 @@ import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.SlaveComputer;
+import jenkins.model.Jenkins;
 import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
 
@@ -43,6 +44,10 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
         Queue.BuildableItem item = new Queue.BuildableItem(new Queue.WaitingItem(Calendar.getInstance(), project, new ArrayList<Action>()));
 
         CauseOfBlockage causeOfBlockage = spaceLeftQueueTaskDispatcher.canTake(slave, item);
+
+        assertNull(causeOfBlockage);
+
+        causeOfBlockage = spaceLeftQueueTaskDispatcher.canTake(Jenkins.getInstance(), item);
 
         assertNull(causeOfBlockage);
 

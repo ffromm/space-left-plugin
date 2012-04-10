@@ -30,7 +30,7 @@ public class SpaceLeft {
         FilePath p = slave.getRootPath();
 
         if (p == null) {
-            return null;
+            return 0L;
         }
 
         Long freeSpaceOnSlave = p.act(new GetUsableSpace());

@@ -74,6 +74,9 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
             } catch (InterruptedException e) {
                 LOG.log(Level.SEVERE, e.getMessage());
             }
+        } else {
+            // we are on master, assuming that master has enough free space.
+            freeDiskSpace = 1L;
         }
 
         if (freeDiskSpace <= 0) {
