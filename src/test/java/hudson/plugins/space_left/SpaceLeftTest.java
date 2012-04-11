@@ -116,4 +116,9 @@ public class SpaceLeftTest extends HudsonTestCase {
 
         assertEquals(Long.valueOf(2000000L), spaceLeft.getRequiredSpace(project));
     }
+
+    @Test
+    public void testFail() {
+        fail("this is a build break test");
+    }
 }
