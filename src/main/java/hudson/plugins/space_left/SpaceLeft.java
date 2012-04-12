@@ -17,10 +17,6 @@ import java.util.logging.Logger;
  * @author ffromm, Frederik Fromm
  */
 public class SpaceLeft {
-    /**
-     * the Logger.
-     */
-    private static final Logger LOG = Logger.getLogger(SpaceLeft.class.getName());
 
     /**
      * Returns the free disk space
@@ -33,7 +29,6 @@ public class SpaceLeft {
      * @throws InterruptedException
      */
     public Long getFreeSpace(Slave slave, AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject, long spaceNeeded) throws IOException, InterruptedException {
-        //LOG.log(Level.INFO, "getting freeSpaceOnSlave for " + currentProject.getName() + " on " + slave);
         FilePath p = slave.getRootPath();
 
         if (p == null) {
@@ -42,30 +37,22 @@ public class SpaceLeft {
 
         Long freeSpaceOnSlave = p.act(new GetUsableSpace());
 
-        //LOG.log(Level.INFO, "freeSpaceOnSlave init: " + freeSpaceOnSlave);
-
         if (spaceNeeded > 0) {
             freeSpaceOnSlave -= spaceNeeded;
         } else if (currentProject != null) {
             freeSpaceOnSlave -= this.getRequiredSpace(currentProject);
         }
 
-        //LOG.log(Level.INFO, "freeSpaceOnSlave start: " + freeSpaceOnSlave);
-
         FilePath workspace = p.child("workspace");
 
         if (workspace.exists()) {
             for (FilePath projectDir : workspace.listDirectories()) {
-                //LOG.log(Level.INFO, "checking dir " + projectDir);
                 TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
 
                 if (topLevelItem instanceof AbstractProject) {
                     AbstractProject project = (AbstractProject) topLevelItem;
-                    //LOG.log(Level.INFO, "project: " + project.getName());
                     Long requiredSpace = this.getRequiredSpace(project);
                     freeSpaceOnSlave -= requiredSpace;
-
-                    //LOG.log(Level.INFO, "freeSpaceOnSlave update: " + freeSpaceOnSlave);
 
                     if (freeSpaceOnSlave <= 0) {
                         freeSpaceOnSlave = 0L;
@@ -74,8 +61,6 @@ public class SpaceLeft {
                 }
             }
         }
-
-        //LOG.log(Level.INFO, "freeSpaceOnSlave final: " + freeSpaceOnSlave);
 
         return freeSpaceOnSlave;
     }

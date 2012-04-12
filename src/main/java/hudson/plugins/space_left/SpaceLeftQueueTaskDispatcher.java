@@ -34,7 +34,6 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
      */
     @Override
     public CauseOfBlockage canTake(Node node, Queue.BuildableItem item) {
-        //LOG.log(Level.INFO, "VVVVVVVVVVVVVVVVVVVVVVVVVVVV canTake start for " + item.task + " on " + node);
         long spaceNeeded = -1L;
 
         ParametersAction parametersAction = item.getAction(ParametersAction.class);
@@ -55,8 +54,6 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
         AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject = null;
 
-        //LOG.log(Level.INFO, "spaceNeeded: " + spaceNeeded);
-
         if (spaceNeeded == -1 && item.task instanceof AbstractProject) {
             currentProject = (AbstractProject<FreeStyleProject, FreeStyleBuild>) item.task;
         }
@@ -65,8 +62,6 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
         if (node instanceof Slave) {
             Slave slave = (Slave) node;
-
-            //LOG.log(Level.INFO, "checking disk usage on slave: " + slave.getNodeName());
 
             try {
                 SpaceLeft spaceLeft = new SpaceLeft();
@@ -81,17 +76,10 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
             freeDiskSpace = 1L;
         }
 
-        //LOG.log(Level.INFO, "freeDiskSpace: " + freeDiskSpace);
-
         if (freeDiskSpace <= 0) {
             LOG.log(Level.WARNING, "slave " + node.getNodeName() + " has not enough free disk space!");
-            //LOG.log(Level.INFO, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA canTake end for " + item.task + " on " + node);
             return CauseOfBlockage.fromMessage(Messages._NotEnoughFreeDiskSpaceOnSlave());
         }
-
-        //LOG.log(Level.INFO, "detected enough free diskspace for job, continue...");
-
-        //LOG.log(Level.INFO, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA canTake end for " + item.task + " on " + node);
 
         return super.canTake(node, item);
     }
