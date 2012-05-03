@@ -22,6 +22,10 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
      */
     private static final Logger LOG = Logger.getLogger(SpaceLeftQueueTaskDispatcher.class.getName());
 
+    /**
+     * Name of the job parameter to inject required space. May be used for generic jobs that
+     * are triggered by preceding jobs.
+     */
     private static final String REQUIRED_SPACE_PARAMETER = "REQUIRED_SPACE";
 
     /**
@@ -32,6 +36,7 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
      * @param item the job to be executed
      * @return null, if the given item can be build on the given node
      */
+    @SuppressWarnings("unchecked")
     @Override
     public CauseOfBlockage canTake(Node node, Queue.BuildableItem item) {
         long spaceNeeded = -1L;
@@ -54,9 +59,13 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
         AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject = null;
 
-        if (spaceNeeded == -1 && item.task instanceof AbstractProject) {
+        /* disabled as not needed yet
+
+        if (spaceNeeded == -1L && item.task instanceof AbstractProject) {
             currentProject = (AbstractProject<FreeStyleProject, FreeStyleBuild>) item.task;
         }
+
+        */
 
         Long freeDiskSpace = -1L;
 
@@ -83,10 +92,4 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
         return super.canTake(node, item);
     }
-
-
-
-
-
-
 }

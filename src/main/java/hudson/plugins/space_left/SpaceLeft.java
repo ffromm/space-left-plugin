@@ -8,6 +8,10 @@ import org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +21,11 @@ import java.util.logging.Logger;
  * @author ffromm, Frederik Fromm
  */
 public class SpaceLeft {
+
+    /**
+     * the logger
+     */
+    private static final Logger LOG = Logger.getLogger(SpaceLeft.class.getName());
 
     /**
      * Returns the free disk space
@@ -70,6 +79,7 @@ public class SpaceLeft {
      * @param project the project containing SpaceLeftProperty.getRequiredSpace
      * @return Returns the value of the SpaceLeftProperty.getRequiredSpace method
      */
+    @SuppressWarnings("unchecked")
     public Long getRequiredSpace(AbstractProject project) {
         SpaceLeftProperty spaceLeftProperty = (SpaceLeftProperty) project.getProperty(SpaceLeftProperty.class);
 
@@ -77,6 +87,64 @@ public class SpaceLeft {
             return spaceLeftProperty.getRequiredSpace();
         }
         return 0L;
+    }
+
+    /**
+     * Returns a map of the build parameters. The key is the param value for the given keyParamName.
+     * The value comes from valueParamName
+     * @param jobName job name
+     * @param keyParamName parameter name for the key
+     * @param valueParamName parameter name for the value
+     * @return a map of the build parameters
+     */
+    public Map<String, String> getBuildParamValueMap(String jobName, String keyParamName, String valueParamName) {
+        Map<String, String> buildSizeMap = new HashMap<String, String>();
+
+        TopLevelItem item = Jenkins.getInstance().getItem(jobName);
+
+        if(!(item instanceof AbstractProject)) {
+            return null;
+        }
+
+        AbstractProject project = (AbstractProject) item;
+
+        SortedMap buildsAsMap = project.getBuildsAsMap();
+
+        for (Object o : buildsAsMap.keySet()) {
+            AbstractBuild build = (AbstractBuild) buildsAsMap.get(o);
+
+            LOG.log(Level.FINE, build + " - " + build.getNumber());
+
+            StringParameterValue keyParam = null;
+            StringParameterValue valueParam = null;
+
+            List<ParametersAction> actions = build.getActions(ParametersAction.class);
+
+            for (ParametersAction action : actions) {
+                try {
+                    if(keyParam == null) {
+                        keyParam = (StringParameterValue) action.getParameter(keyParamName);
+                    }
+
+                    if(valueParam == null) {
+                        valueParam = (StringParameterValue) action.getParameter(valueParamName);
+                    }
+                } catch (ClassCastException e) {
+                    LOG.log(Level.INFO, "Fail to get key/value parameter from action.");
+                }
+            }
+
+            // only add latest value
+            if(keyParam != null && valueParam != null && !buildSizeMap.containsKey(keyParam.value)) {
+                buildSizeMap.put(keyParam.value, valueParam.value);
+            }
+
+        }
+
+
+
+
+        return buildSizeMap;
     }
 
     /**

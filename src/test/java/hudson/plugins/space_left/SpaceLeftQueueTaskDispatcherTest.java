@@ -1,5 +1,6 @@
 package hudson.plugins.space_left;
 
+import hudson.FilePath;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
@@ -9,6 +10,7 @@ import jenkins.model.Jenkins;
 import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -87,5 +89,4 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
 
         assertNull(causeOfBlockage);
     }
-
 }
