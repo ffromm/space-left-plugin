@@ -59,13 +59,9 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
         AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject = null;
 
-        /* disabled as not needed yet
-
         if (spaceNeeded == -1L && item.task instanceof AbstractProject) {
             currentProject = (AbstractProject<FreeStyleProject, FreeStyleBuild>) item.task;
         }
-
-        */
 
         Long freeDiskSpace = -1L;
 
