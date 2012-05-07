@@ -3,6 +3,7 @@ package hudson.plugins.space_left;
 import hudson.FilePath;
 import hudson.model.*;
 import hudson.remoting.VirtualChannel;
+import hudson.slaves.WorkspaceList;
 import jenkins.model.Jenkins;
 import org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement;
 
@@ -28,6 +29,11 @@ public class SpaceLeft {
     private static final Logger LOG = Logger.getLogger(SpaceLeft.class.getName());
 
     /**
+     * The token that combines the project name and unique number to create unique workspace directory.
+     */
+    private static final String COMBINATOR = System.getProperty(WorkspaceList.class.getName(),"@");
+
+    /**
      * Returns the free disk space
      *
      * @param slave          slave to get the free space from
@@ -47,20 +53,29 @@ public class SpaceLeft {
         Long freeSpaceOnSlave = p.act(new GetUsableSpace());
 
         if (spaceNeeded > 0) {
+            // if spaceNeeded is set, skip requiredSpace of current project.
             freeSpaceOnSlave -= spaceNeeded;
-        } else if (currentProject != null) {
-            freeSpaceOnSlave -= this.getRequiredSpace(currentProject);
         }
 
         FilePath workspace = p.child("workspace");
 
         if (workspace.exists()) {
             for (FilePath projectDir : workspace.listDirectories()) {
+                if(spaceNeeded > 0L && projectDir.equals(currentProject.getSomeWorkspace())) {
+                    continue;
+                }
+
                 TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
+
+                if(topLevelItem == null && projectDir.getName().contains(COMBINATOR)) {
+                    String projectName = projectDir.getName();
+                    topLevelItem = Jenkins.getInstance().getItem(projectName.substring(0, projectName.lastIndexOf(COMBINATOR)));
+                }
 
                 if (topLevelItem instanceof AbstractProject) {
                     AbstractProject project = (AbstractProject) topLevelItem;
                     Long requiredSpace = this.getRequiredSpace(project);
+
                     freeSpaceOnSlave -= requiredSpace;
 
                     if (freeSpaceOnSlave <= 0) {
@@ -140,9 +155,6 @@ public class SpaceLeft {
             }
 
         }
-
-
-
 
         return buildSizeMap;
     }

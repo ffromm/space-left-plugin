@@ -24,10 +24,12 @@ import java.util.concurrent.Future;
  */
 public class SpaceLeftTest extends HudsonTestCase {
 
+    /**
+     * Test free space calculation
+     * @throws Exception
+     */
 
-
-    @Test
-    public void testGetFreeSpace() throws Exception {
+    public void notestGetFreeSpace() throws Exception {
 
         // init slave
         PretendSlave pretendSlave = new PretendSlave("pretendSlave", null, 1, Node.Mode.NORMAL, "", null, null);
@@ -50,10 +52,6 @@ public class SpaceLeftTest extends HudsonTestCase {
 
         assertTrue(freeSpace > 0L);
 
-        // get free space from empty slave
-        SpaceLeftQueueTaskDispatcher spaceLeftQueueTaskDispatcher = new SpaceLeftQueueTaskDispatcher();
-
-
         // add project to slave
         FreeStyleProject project = this.createFreeStyleProject();
         project.setAssignedLabel(label);
@@ -70,6 +68,10 @@ public class SpaceLeftTest extends HudsonTestCase {
         spaceLeftProperty.setRequiredSpace(1000000L);
 
         Long otherFreeSpace = spaceLeft.getFreeSpace(slave, project, -1L);
+
+
+
+        assertEquals(otherFreeSpace - getRemoteUsableSpace(project.getSomeWorkspace()), 1000000L);
 
         assertTrue((Math.abs(otherFreeSpace - (freeSpace - 1000000L)) < 100000L) );
 
@@ -97,6 +99,10 @@ public class SpaceLeftTest extends HudsonTestCase {
         assertTrue((Math.abs(otherFreeSpace - (freeSpace - 5000000L)) < 100000L) );
     }
 
+    /**
+     * Test the required space setting
+     * @throws Exception
+     */
     @Test
     public void testGetRequiredSpace() throws Exception {
         FreeStyleProject project = this.createFreeStyleProject();
@@ -112,7 +118,12 @@ public class SpaceLeftTest extends HudsonTestCase {
         assertEquals(Long.valueOf(2000000L), spaceLeft.getRequiredSpace(project));
     }
 
-    public void testGetFreeSpace2() throws Exception {
+    /**
+     * Test the storage of the workspace size in build.xml
+     * @throws Exception
+     */
+    @Test
+    public void testGetFreeSpaceWorkspaceSizeStorage() throws Exception {
         // init slave
         LabelAtom label = new LabelAtom("label");
         DumbSlave slave = this.createSlave(label);
@@ -126,19 +137,6 @@ public class SpaceLeftTest extends HudsonTestCase {
         // add project to slave
         FreeStyleProject project = this.createFreeStyleProject("spaceConsumer");
         project.setAssignedLabel(label);
-        project.setConcurrentBuild(true);
-
-        Future<FreeStyleBuild> freeStyleBuildFuture = project.scheduleBuild2(0);
-        //project.scheduleBuild2(10).get();
-        //project.scheduleBuild2(20).get();
-        freeStyleBuildFuture.get();
-
-        System.out.println(project.getRootDir());
-        //project.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("componentName", "XXX")));
-
-        //Queue.BuildableItem item = new Queue.BuildableItem(new Queue.WaitingItem(Calendar.getInstance(), project, new ArrayList<Action>()));
-
-        //project.getActions().add(new ParametersAction(new StringParameterValue("componentName", "compName")));
 
         SpaceLeftBuilder spaceLeftBuilder = new SpaceLeftBuilder();
 
@@ -167,4 +165,78 @@ public class SpaceLeftTest extends HudsonTestCase {
         assertEquals("compName", next.getKey());
         assertEquals("1267712", next.getValue());
     }
+
+    /**
+     * Test multiple workspaces for one Job.
+     * @throws Exception
+     */
+    @Test
+    public void testGetFreeSpaceWithConcurrentWorkspaces() throws Exception {
+
+        // set COMBINATOR to "_" for better readability
+        System.setProperty(WorkspaceList.class.getName(), "_");
+
+        // init slave
+        LabelAtom label = new LabelAtom("label");
+        DumbSlave slave = this.createSlave(label);
+        SlaveComputer c = slave.getComputer();
+        c.connect(false).get(); // wait until it's connected
+        if(c.isOffline()) {
+            fail("Slave failed to go online: "+c.getLog());
+        }
+
+        // run jobs on slave consuming space and storing it in build.xml
+        // add project to slave
+        FreeStyleProject project = this.createFreeStyleProject("spaceConsumer");
+        project.setAssignedLabel(label);
+
+        SpaceLeftProperty spaceLeftProperty = new SpaceLeftProperty();
+        spaceLeftProperty.setRequiredSpace(2000000L);
+        project.addProperty(spaceLeftProperty);
+
+        FilePath workspace = c.getNode().getWorkspaceFor(project);
+        assertNotNull(workspace);
+        File testFile = new File("src/test/resources/testfile.txt");
+        assertTrue(testFile.exists() && testFile.canRead());
+        FilePath testFilePath = new FilePath(testFile);
+        testFilePath.copyTo(workspace.child("testfile.txt"));
+
+        SpaceLeft spaceLeft = new SpaceLeft();
+        Long freeSpace = spaceLeft.getFreeSpace(slave, project, 0);
+
+        String remote = workspace.getParent().getRemote();
+        File remoteDir = new File(remote);
+
+        assertEquals(2000000, getRemoteUsableSpace(workspace)-freeSpace);
+
+        String[] jobNamesBefore = remoteDir.list();
+        assertEquals(1, jobNamesBefore.length);
+        assertTrue(remoteDir.exists() && remoteDir.isDirectory());
+        String jobName = workspace.getBaseName();
+        FilePath workspace2 = workspace.getParent().child(jobName + "_2");
+        int numCopied2 = workspace.copyRecursiveTo(workspace2);
+        assertTrue(numCopied2 > 0);
+        FilePath workspace3 = workspace.getParent().child(jobName + "_3");
+        int numCopied3 = workspace.copyRecursiveTo(workspace3);
+        assertTrue(numCopied3 > 0);
+        String[] jobNamesAfter = remoteDir.list();
+        assertEquals(3, jobNamesAfter.length);
+
+        freeSpace = spaceLeft.getFreeSpace(slave, project, 0);
+
+        assertEquals(6000000, (getRemoteUsableSpace(workspace)-freeSpace));
+    }
+
+    /**
+     * Returns the usable disk space from the given file path
+     * @param filePath the unit test slave workspace
+     * @return the usable disk space
+     */
+    private Long getRemoteUsableSpace(FilePath filePath) {
+        String remote = filePath.getParent().getRemote();
+        File remoteDir = new File(remote);
+
+        return Long.valueOf(remoteDir.getUsableSpace());
+    }
+
 }
