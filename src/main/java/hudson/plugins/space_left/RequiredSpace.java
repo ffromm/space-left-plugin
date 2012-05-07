@@ -52,10 +52,11 @@ public class RequiredSpace {
         if (workspace.exists()) {
             for (FilePath projectDir : workspace.listDirectories()) {
                 TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
-
+                System.out.println(projectDir + " " + topLevelItem);
                 if(topLevelItem == null && projectDir.getName().contains(COMBINATOR)) {
                     String projectName = projectDir.getName();
                     topLevelItem = Jenkins.getInstance().getItem(projectName.substring(0, projectName.lastIndexOf(COMBINATOR)));
+                    System.out.println(topLevelItem);
                 }
 
                 if (topLevelItem instanceof AbstractProject) {
@@ -63,6 +64,7 @@ public class RequiredSpace {
                     if(currentProject == null || !projectDir.getName().equals(currentProject.getName()))
                     {
                         requiredSpace += this.getRequiredProjectSpace(project);
+                        System.out.println(requiredSpace);
                     }
                 }
             }
