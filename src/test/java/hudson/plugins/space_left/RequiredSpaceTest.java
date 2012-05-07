@@ -43,6 +43,8 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
             FilePath workspace = c.getNode().getWorkspaceFor(project);
             assertNotNull(workspace);
+            workspace.deleteRecursive();
+
             File testFile = new File("src/test/resources/testfile.txt");
             assertTrue(testFile.exists() && testFile.canRead());
             FilePath testFilePath = new FilePath(testFile);
