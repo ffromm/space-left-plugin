@@ -59,6 +59,8 @@ public class SpaceLeftQueueTaskDispatcherTest extends HudsonTestCase {
         
         project.addProperty(spaceLeftProperty);
 
+        project.scheduleBuild2(0).get();
+
         causeOfBlockage = spaceLeftQueueTaskDispatcher.canTake(slave, item);
         
         assertNotNull(causeOfBlockage);

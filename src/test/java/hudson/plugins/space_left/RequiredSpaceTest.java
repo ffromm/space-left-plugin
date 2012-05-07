@@ -32,7 +32,7 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
         RequiredSpace requiredSpace = new RequiredSpace(slave);
 
-        assertEquals(0L, requiredSpace.getRequiredSpace());
+        assertEquals(0L, requiredSpace.getRequiredSpace(null));
 
         // run jobs on slave consuming space and storing it in build.xml
         // add project to slave
@@ -51,7 +51,8 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
         project.scheduleBuild2(0).get();
 
-        assertEquals(2000000L, requiredSpace.getRequiredSpace());
+        assertEquals(0L, requiredSpace.getRequiredSpace(project));
+        assertEquals(2000000L, requiredSpace.getRequiredSpace(null));
 
         String remote = workspace.getParent().getRemote();
         File remoteDir = new File(remote);
@@ -69,7 +70,9 @@ public class RequiredSpaceTest extends HudsonTestCase {
         String[] jobNamesAfter = remoteDir.list();
         assertEquals(3, jobNamesAfter.length);
 
-        assertEquals(6000000L, requiredSpace.getRequiredSpace());
+        assertEquals(6000000L, requiredSpace.getRequiredSpace(null));
+
+        assertEquals(4000000L, requiredSpace.getRequiredSpace(project));
     }
 
     /**
@@ -90,4 +93,29 @@ public class RequiredSpaceTest extends HudsonTestCase {
         assertEquals(2000000L, requiredSpace.getRequiredProjectSpace(project));
     }
 
+    public void testProjectNames() throws Exception {
+        // init slave
+        LabelAtom label = new LabelAtom("label");
+        DumbSlave slave = this.createSlave(label);
+        SlaveComputer c = slave.getComputer();
+        c.connect(false).get(); // wait until it's connected
+        if(c.isOffline()) {
+            fail("Slave failed to go online: "+c.getLog());
+        }
+
+        FreeStyleProject project = this.createFreeStyleProject("Name  with Spaces");
+        project.setAssignedLabel(label);
+
+        project.scheduleBuild2(0).get();
+
+        FilePath p = slave.getRootPath();
+
+        FilePath workspace = p.child("workspace");
+
+        if (workspace.exists()) {
+            for (FilePath projectDir : workspace.listDirectories()) {
+                System.out.println(projectDir.getName());
+            }
+        }
+    }
 }

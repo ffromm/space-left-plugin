@@ -60,7 +60,7 @@ public class RequiredSpace {
 
                 if (topLevelItem instanceof AbstractProject) {
                     AbstractProject project = (AbstractProject) topLevelItem;
-                    if(currentProject == null || !project.getName().equals(currentProject.getName()))
+                    if(currentProject == null || !projectDir.getName().equals(currentProject.getName()))
                     {
                         requiredSpace += this.getRequiredProjectSpace(project);
                     }
