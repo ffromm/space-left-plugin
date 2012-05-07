@@ -51,7 +51,9 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
         project.scheduleBuild2(0).get();
 
+        System.out.println("test1");
         assertEquals(0L, requiredSpace.getRequiredSpace(project));
+        System.out.println("test2");
         assertEquals(2000000L, requiredSpace.getRequiredSpace(null));
 
         String remote = workspace.getParent().getRemote();
@@ -70,9 +72,11 @@ public class RequiredSpaceTest extends HudsonTestCase {
         String[] jobNamesAfter = remoteDir.list();
         assertEquals(3, jobNamesAfter.length);
 
+        System.out.println("test3");
         assertEquals(6000000L, requiredSpace.getRequiredSpace(null));
-
+        System.out.println("test4");
         assertEquals(4000000L, requiredSpace.getRequiredSpace(project));
+        System.out.println("test ende");
     }
 
     /**
