@@ -40,7 +40,6 @@ public class RequiredSpace {
      */
     public long getRequiredSpace(AbstractProject currentProject) throws IOException, InterruptedException {
         long requiredSpace = 0L;
-        System.out.println("1");
         FilePath p = this.node.getRootPath();
 
         if (p == null) {
@@ -48,15 +47,13 @@ public class RequiredSpace {
         }
 
         FilePath workspace = p.child("workspace");
-        System.out.println("2");
         if (workspace.exists()) {
             for (FilePath projectDir : workspace.listDirectories()) {
                 TopLevelItem topLevelItem = Jenkins.getInstance().getItem(projectDir.getName());
-                System.out.println(projectDir + " " + topLevelItem);
                 if(topLevelItem == null && projectDir.getName().contains(COMBINATOR)) {
                     String projectName = projectDir.getName();
-                    topLevelItem = Jenkins.getInstance().getItem(projectName.substring(0, projectName.lastIndexOf(COMBINATOR)));
-                    System.out.println(topLevelItem);
+                    projectName = projectName.substring(0, projectName.lastIndexOf(COMBINATOR));
+                    topLevelItem = Jenkins.getInstance().getItem(projectName);
                 }
 
                 if (topLevelItem instanceof AbstractProject) {
@@ -64,13 +61,9 @@ public class RequiredSpace {
                     if(currentProject == null || !projectDir.getName().equals(currentProject.getName()))
                     {
                         requiredSpace += this.getRequiredProjectSpace(project);
-                        System.out.println(requiredSpace);
                     }
-                    System.out.println("3");
                 }
-                System.out.println("4");
             }
-            System.out.println("5");
         }
 
         return requiredSpace;

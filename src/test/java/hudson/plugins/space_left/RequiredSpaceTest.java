@@ -9,6 +9,7 @@ import hudson.slaves.WorkspaceList;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * Tests the class to get the required space for a node
@@ -17,9 +18,6 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
     public void testGetRequiredSpace() {
         try {
-            // set COMBINATOR to "_" for better readability
-            System.setProperty(WorkspaceList.class.getName(), "_");
-
             // init slave
             LabelAtom label = new LabelAtom("label");
             DumbSlave slave = this.createSlave(label);
@@ -43,7 +41,6 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
             FilePath workspace = c.getNode().getWorkspaceFor(project);
             assertNotNull(workspace);
-            workspace.deleteRecursive();
 
             File testFile = new File("src/test/resources/testfile.txt");
             assertTrue(testFile.exists() && testFile.canRead());
@@ -52,9 +49,7 @@ public class RequiredSpaceTest extends HudsonTestCase {
 
             project.scheduleBuild2(0).get();
 
-            System.out.println("test1");
             assertEquals(0L, requiredSpace.getRequiredSpace(project));
-            System.out.println("test2");
             assertEquals(2000000L, requiredSpace.getRequiredSpace(null));
 
             String remote = workspace.getParent().getRemote();
@@ -64,20 +59,17 @@ public class RequiredSpaceTest extends HudsonTestCase {
             assertEquals(1, jobNamesBefore.length);
             assertTrue(remoteDir.exists() && remoteDir.isDirectory());
             String jobName = workspace.getBaseName();
-            FilePath workspace2 = workspace.getParent().child(jobName + "_2");
+            FilePath workspace2 = workspace.getParent().child(jobName + "@2");
             int numCopied2 = workspace.copyRecursiveTo(workspace2);
             assertTrue(numCopied2 > 0);
-            FilePath workspace3 = workspace.getParent().child(jobName + "_3");
+            FilePath workspace3 = workspace.getParent().child(jobName + "@3");
             int numCopied3 = workspace.copyRecursiveTo(workspace3);
             assertTrue(numCopied3 > 0);
             String[] jobNamesAfter = remoteDir.list();
             assertEquals(3, jobNamesAfter.length);
 
-            System.out.println("test3");
             assertEquals(6000000L, requiredSpace.getRequiredSpace(null));
-            System.out.println("test4");
             assertEquals(4000000L, requiredSpace.getRequiredSpace(project));
-            System.out.println("test ende");
         } catch (Exception e) {
             fail(e.getMessage());
             e.printStackTrace();
@@ -101,31 +93,5 @@ public class RequiredSpaceTest extends HudsonTestCase {
         project.addProperty(spaceLeftProperty);
 
         assertEquals(2000000L, requiredSpace.getRequiredProjectSpace(project));
-    }
-
-    public void testProjectNames() throws Exception {
-        // init slave
-        LabelAtom label = new LabelAtom("label");
-        DumbSlave slave = this.createSlave(label);
-        SlaveComputer c = slave.getComputer();
-        c.connect(false).get(); // wait until it's connected
-        if (c.isOffline()) {
-            fail("Slave failed to go online: " + c.getLog());
-        }
-
-        FreeStyleProject project = this.createFreeStyleProject("Name  with Spaces");
-        project.setAssignedLabel(label);
-
-        project.scheduleBuild2(0).get();
-
-        FilePath p = slave.getRootPath();
-
-        FilePath workspace = p.child("workspace");
-
-        if (workspace.exists()) {
-            for (FilePath projectDir : workspace.listDirectories()) {
-                System.out.println(projectDir.getName());
-            }
-        }
     }
 }
