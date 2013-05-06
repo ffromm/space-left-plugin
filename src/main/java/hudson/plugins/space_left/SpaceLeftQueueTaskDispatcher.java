@@ -86,7 +86,7 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
             if (p != null) {
                 Long freeSpaceOnSlave = p.act(new GetUsableSpace());
 
-                if (freeSpaceOnSlave - spaceNeeded <= 0L) {
+                if (freeSpaceOnSlave == null || freeSpaceOnSlave - spaceNeeded <= 0L) {
                     LOG.log(Level.WARNING, "slave " + node.getNodeName() + " has not enough free disk space!");
                     return CauseOfBlockage.fromMessage(Messages._NotEnoughFreeDiskSpaceOnSlave());
                 }
