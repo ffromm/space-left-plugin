@@ -73,10 +73,10 @@ public class SpaceLeftQueueTaskDispatcher extends QueueTaskDispatcher {
 
             // if space needed is given by parameter, the current build required space is overridden.
             // removing it from workspace analysis
-            AbstractProject<FreeStyleProject, FreeStyleBuild> currentProject = null;
+            AbstractProject currentProject = null;
 
             if (spaceNeeded > -1L && item.task instanceof AbstractProject) {
-                currentProject = (AbstractProject<FreeStyleProject, FreeStyleBuild>) item.task;
+                currentProject = (AbstractProject) item.task;
             }
 
             spaceNeeded += requiredSpace.getRequiredSpace(currentProject);
